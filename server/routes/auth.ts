@@ -103,8 +103,9 @@ router.post("/login", async (req, res) => {
       org: row.org,
     });
   } catch (err: any) {
+    console.error("[login error]", err?.message, err?.code);
     if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
-    res.status(500).json({ error: "Login failed" });
+    res.status(500).json({ error: "Login failed", detail: err?.message });
   }
 });
 
