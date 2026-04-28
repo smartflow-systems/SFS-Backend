@@ -64,9 +64,10 @@ router.post("/register", async (req, res) => {
 
     res.status(201).json({ token: signToken(payload), user: { ...payload, firstName: user.firstName, lastName: user.lastName }, org });
   } catch (err: any) {
+    console.error("[register error]", err?.message, err?.code, err?.detail);
     if (err.code === "23505") return res.status(409).json({ error: "Email already registered" });
     if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
-    res.status(500).json({ error: "Registration failed" });
+    res.status(500).json({ error: "Registration failed", detail: err?.message });
   }
 });
 
