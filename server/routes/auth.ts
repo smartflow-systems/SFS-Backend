@@ -93,8 +93,8 @@ router.post("/login", async (req, res) => {
       userId: row.user.id,
       orgId: row.org.id,
       email: row.user.email,
-      role: row.user.role,
-      plan: row.org.plan,
+      role: row.user.role as SFSTokenPayload['role'],
+      plan: row.org.plan as SFSTokenPayload['plan'],
     };
 
     res.json({
@@ -186,8 +186,8 @@ router.post("/accept-invite", async (req, res) => {
       userId: user.id,
       orgId: org.id,
       email: user.email,
-      role: user.role,
-      plan: org.plan,
+      role: user.role as SFSTokenPayload['role'],
+      plan: org.plan as SFSTokenPayload['plan'],
     };
 
     res.status(201).json({ token: jwt.sign(payload, secret, { expiresIn: "7d" }), user: payload, org });
