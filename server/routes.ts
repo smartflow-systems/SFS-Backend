@@ -1,20 +1,18 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import authRoutes from "./routes/auth";
+import productRoutes from "./routes/products";
+import orgRoutes from "./routes/orgs";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Health check — SFS standard: GET /health → {"ok":true}
   app.get("/health", (_req, res) => {
-    res.json({ ok: true });
+    res.json({ ok: true, service: "sfs-backend", version: "1.0.0" });
   });
 
-  // put application routes here
-  // prefix all routes with /api
-
-  // use storage to perform CRUD operations on the storage interface
-  // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
+  app.use("/api/auth", authRoutes);
+  app.use("/api/products", productRoutes);
+  app.use("/api/orgs", orgRoutes);
 
   const httpServer = createServer(app);
-
   return httpServer;
 }
