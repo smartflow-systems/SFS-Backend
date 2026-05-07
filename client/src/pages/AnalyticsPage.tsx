@@ -1,107 +1,115 @@
+import { useQuery } from "@tanstack/react-query";
 import { StatsCard } from "@/components/StatsCard";
-import { Users, DollarSign, Activity, Zap } from "lucide-react";
+import { Users, DollarSign, Activity, Zap, Loader2 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
+interface OrgData {
+  org: { name: string; plan: string | null };
+  team: { id: string; email: string; role: string; isActive: boolean }[];
+  subscriptions: { subscription: { status: string; plan: string } | null; product: { name: string } | null }[];
+}
+
+const PLAN_PRICE: Record<string, string> = { free: "$0", starter: "$9", pro: "$29", enterprise: "$99" };
+
 export default function AnalyticsPage() {
-  const recentEvents = [
-    { name: "page_view", path: "/dashboard", user: "user_123", time: "1 min ago" },
-    { name: "button_click", path: "/billing", user: "user_456", time: "3 mins ago" },
-    { name: "form_submit", path: "/settings", user: "user_789", time: "5 mins ago" },
-    { name: "api_call", path: "/api/users", user: "user_321", time: "8 mins ago" },
-    { name: "page_view", path: "/analytics", user: "user_654", time: "12 mins ago" },
-  ];
+  const { data, isLoading } = useQuery<OrgData>({ queryKey: ["/api/orgs/me"] });
+
+  const activeMembers = data?.team.filter((u) => u.isActive).length ?? 0;
+  const currentPlan = data?.org.plan ?? "free";
+  const activeSubs = data?.subscriptions.filter((s) => s.subscription?.status === "active") ?? [];
+  const monthlyRevenue = activeSubs.reduce((sum, s) => {
+    const price = parseInt(PLAN_PRICE[s.subscription?.plan ?? "free"]?.replace("$", "") ?? "0", 10);
+    return sum + price;
+  }, 0);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold mb-2">Analytics</h1>
-        <p className="text-muted-foreground">Track user behavior and application metrics</p>
+        <p className="text-muted-foreground">
+          {data?.org.name} — overview of team and subscription usage
+        </p>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard
-          title="Total Users"
-          value="1,234"
-          change="+12.5%"
-          trend="up"
+          title="Team Members"
+          value={activeMembers}
           icon={Users}
         />
         <StatsCard
-          title="Active Sessions"
-          value="342"
-          change="+5.2%"
-          trend="up"
+          title="Active Subscriptions"
+          value={activeSubs.length}
           icon={Activity}
         />
         <StatsCard
-          title="Conversion Rate"
-          value="3.2%"
-          change="+0.8%"
-          trend="up"
+          title="Current Plan"
+          value={currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)}
           icon={Zap}
         />
         <StatsCard
-          title="Revenue"
-          value="$12.4K"
-          change="+15.2%"
-          trend="up"
+          title="Monthly Revenue"
+          value={`$${monthlyRevenue}`}
           icon={DollarSign}
         />
       </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>User Growth</CardTitle>
-            <CardDescription>New users over time</CardDescription>
+            <CardTitle>Team</CardTitle>
+            <CardDescription>{activeMembers} active member{activeMembers !== 1 ? "s" : ""}</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-64 flex items-center justify-center bg-muted/30 rounded-md">
-              <p className="text-muted-foreground">Chart visualization placeholder</p>
+            <div className="space-y-3">
+              {data?.team.map((member) => (
+                <div key={member.id} className="flex items-center justify-between py-2 border-b last:border-0">
+                  <span className="text-sm font-mono truncate">{member.email}</span>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-xs capitalize">{member.role}</Badge>
+                    {!member.isActive && <Badge variant="secondary" className="text-xs">Inactive</Badge>}
+                  </div>
+                </div>
+              ))}
+              {(!data?.team || data.team.length === 0) && (
+                <p className="text-sm text-muted-foreground">No team members yet.</p>
+              )}
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader>
-            <CardTitle>Revenue by Plan</CardTitle>
-            <CardDescription>Breakdown of subscription revenue</CardDescription>
+            <CardTitle>Subscriptions</CardTitle>
+            <CardDescription>Active product access</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-64 flex items-center justify-center bg-muted/30 rounded-md">
-              <p className="text-muted-foreground">Chart visualization placeholder</p>
+            <div className="space-y-3">
+              {activeSubs.map((s, idx) => (
+                <div key={idx} className="flex items-center justify-between py-2 border-b last:border-0">
+                  <span className="text-sm font-medium">{s.product?.name ?? "SFS Platform"}</span>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs capitalize">{s.subscription?.plan}</Badge>
+                    <Badge className="text-xs">{s.subscription?.status}</Badge>
+                  </div>
+                </div>
+              ))}
+              {activeSubs.length === 0 && (
+                <p className="text-sm text-muted-foreground">No active subscriptions.</p>
+              )}
             </div>
           </CardContent>
         </Card>
       </div>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Events</CardTitle>
-          <CardDescription>Latest tracked analytics events</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {recentEvents.map((event, idx) => (
-              <div
-                key={idx}
-                className="flex items-center justify-between py-3 border-b last:border-0"
-                data-testid={`event-${idx}`}
-              >
-                <div className="flex items-center gap-4 flex-1 min-w-0">
-                  <Badge variant="outline" className="font-mono text-xs">
-                    {event.name}
-                  </Badge>
-                  <span className="text-sm text-muted-foreground truncate">{event.path}</span>
-                  <span className="text-sm text-muted-foreground font-mono">{event.user}</span>
-                </div>
-                <span className="text-sm text-muted-foreground">{event.time}</span>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
