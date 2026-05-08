@@ -5,7 +5,21 @@ import { setupVite, serveStatic, log } from "./vite";
 const app = express();
 
 // Stripe webhooks need the raw body — register before express.json()
+
+app.post("/api/debug/post-test", express.json({ limit: "1mb" }), (_req, res) => {
+  res.status(200).json({ ok: true, method: "POST", route: "/api/debug/post-test" });
+});
+
 app.use("/api/billing/webhook", express.raw({ type: "application/json" }));
+
+app.post("/api/billing/webhook", (req, res, next) => {
+  const sig = req.headers["stripe-signature"];
+  if (typeof sig !== "string" || sig.length === 0) {
+    return res.status(400).json({ error: "Missing Stripe signature" });
+  }
+  next();
+});
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

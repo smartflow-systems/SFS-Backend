@@ -1,0 +1,17 @@
+export declare const SFS_THEME: any;
+export declare const sfsTheme: any;
+export declare const smartFlowTheme: any;
+export declare const brandTheme: any;
+export declare const theme: any;
+export declare function applySfsTheme(): any;
+export declare function applySFSTheme(): any;
+export declare function applySmartFlowTheme(): any;
+export declare function initSfsTheme(): any;
+export declare function initSFSTheme(): any;
+export declare function initSmartFlowTheme(): any;
+export declare function setSfsTheme(): any;
+export declare function getSfsTheme(): any;
+export declare function loadSfsTheme(): any;
+export declare function setupSfsTheme(): any;
+export declare function injectSfsTheme(): any;
+export default SFS_THEME;
