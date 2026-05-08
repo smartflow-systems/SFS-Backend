@@ -1,0 +1,13 @@
+{
+  "name": "@boweazy/core-utils",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "exports": {
+    "./theme": {
+      "types": "./theme.d.ts",
+      "import": "./theme.js",
+      "default": "./theme.js"
+    }
+  }
+}
